@@ -3,24 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clientes &mdash; Simulador Previdenci&aacute;rio</title>
+<title>Clientes</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f3ef;color:#1c1a17;min-height:100vh;}
+body{font-family:sans-serif;background:#f5f3ef;color:#1c1a17;min-height:100vh;}
 header{background:#1a3a5c;color:#fff;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
 .hd-left{display:flex;align-items:center;gap:12px;}
 .hd-left img{width:36px;height:36px;border-radius:6px;}
 .hd-title{font-size:15px;font-weight:600;}
 .hd-sub{font-size:11px;opacity:.55;margin-top:2px;}
-.btn-sair{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:7px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit;}
-.btn-sair:hover{background:rgba(255,255,255,.2);}
+.btn-sair{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:7px;padding:7px 14px;font-size:12px;cursor:pointer;}
 .main{max-width:900px;margin:0 auto;padding:28px 20px;}
 .topo{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
 .topo h1{font-size:22px;font-weight:600;}
 .busca-novo{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-.busca{border:1.5px solid #e8e4dc;border-radius:8px;padding:9px 14px;font-size:13px;font-family:inherit;background:#fff;width:220px;}
+.busca{border:1.5px solid #e8e4dc;border-radius:8px;padding:9px 14px;font-size:13px;background:#fff;width:220px;}
 .busca:focus{outline:none;border-color:#2a5282;}
-.btn-novo{background:#1a3a5c;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.btn-novo{background:#1a3a5c;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;}
 .btn-novo:hover{background:#2a5282;}
 .lista{display:flex;flex-direction:column;gap:8px;}
 .cliente-item{background:#fff;border:1px solid #e8e4dc;border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .13s;}
@@ -38,11 +37,11 @@ header{background:#1a3a5c;color:#fff;padding:14px 32px;display:flex;align-items:
 .modal h2{font-size:17px;font-weight:600;margin-bottom:20px;}
 .field{margin-bottom:14px;}
 .field label{display:block;font-size:11px;font-weight:600;color:#5c5852;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
-.field input,.field select{width:100%;border:1.5px solid #e8e4dc;border-radius:7px;padding:9px 12px;font-size:13px;font-family:inherit;color:#1c1a17;background:#f5f3ef;}
+.field input,.field select{width:100%;border:1.5px solid #e8e4dc;border-radius:7px;padding:9px 12px;font-size:13px;color:#1c1a17;background:#f5f3ef;}
 .field input:focus,.field select:focus{outline:none;border-color:#2a5282;background:#fff;}
 .modal-btns{display:flex;gap:10px;margin-top:20px;}
-.btn-cancelar{flex:1;background:#f5f3ef;color:#5c5852;border:1px solid #e8e4dc;border-radius:7px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
-.btn-salvar{flex:2;background:#1a3a5c;color:#fff;border:none;border-radius:7px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-cancelar{flex:1;background:#f5f3ef;color:#5c5852;border:1px solid #e8e4dc;border-radius:7px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;}
+.btn-salvar{flex:2;background:#1a3a5c;color:#fff;border:none;border-radius:7px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;}
 .btn-salvar:hover{background:#2a5282;}
 .btn-salvar:disabled{opacity:.5;cursor:not-allowed;}
 </style>
@@ -50,20 +49,20 @@ header{background:#1a3a5c;color:#fff;padding:14px 32px;display:flex;align-items:
 <body>
 <header>
   <div class="hd-left">
-    <img id="logo-img" src="" alt="Logo">
+    <img src="logo.png" alt="Logo">
     <div>
       <div class="hd-title">Michele Mueller &mdash; Advogada</div>
       <div class="hd-sub">Simulador Previdenci&aacute;rio &middot; EC 103/2019</div>
     </div>
   </div>
-  <button class="btn-sair" onclick="sair()">Sair</button>
+  <button class="btn-sair" id="btn-sair">Sair</button>
 </header>
 <div class="main">
   <div class="topo">
     <h1>Clientes</h1>
     <div class="busca-novo">
-      <input class="busca" type="text" id="busca" placeholder="Buscar por nome..." oninput="filtrar()">
-      <button class="btn-novo" onclick="abrirModal()">+ Novo Cliente</button>
+      <input class="busca" type="text" id="busca" placeholder="Buscar por nome...">
+      <button class="btn-novo" id="btn-novo">+ Novo Cliente</button>
     </div>
   </div>
   <div class="lista" id="lista"><div class="loading">Carregando clientes...</div></div>
@@ -77,114 +76,108 @@ header{background:#1a3a5c;color:#fff;padding:14px 32px;display:flex;align-items:
     </div>
     <div class="field"><label>Data de nascimento</label><input type="date" id="nc-nasc"></div>
     <div class="modal-btns">
-      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
-      <button class="btn-salvar" id="btn-salvar" onclick="salvarCliente()">Criar Cliente</button>
+      <button class="btn-cancelar" id="btn-cancelar">Cancelar</button>
+      <button class="btn-salvar" id="btn-salvar">Criar Cliente</button>
     </div>
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-var SB_URL = 'https://jygrhenqoupzszbhvpfj.supabase.co';
-var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5Z3JoZW5xb3VwenN6Ymh2cGZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTYxMzYsImV4cCI6MjA5MDQ3MjEzNn0.KyKGNHOiuedb46DDQFyaT67ZzJssn2qxiY-gd325QLc';
+var SB_URL = "https://jygrhenqoupzszbhvpfj.supabase.co";
+var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5Z3JoZW5xb3VwenN6Ymh2cGZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTYxMzYsImV4cCI6MjA5MDQ3MjEzNn0.KyKGNHOiuedb46DDQFyaT67ZzJssn2qxiY-gd325QLc";
 var sb = supabase.createClient(SB_URL, SB_KEY);
 var todosClientes = [];
 
-// Logo via fetch para evitar problemas com base64 inline no JS
-fetch('logo.png').then(function(r){ return r.blob(); }).then(function(b){
-  var url = URL.createObjectURL(b);
-  document.getElementById('logo-img').src = url;
-}).catch(function(){});
-
 sb.auth.getSession().then(function(res) {
-  if (!res.data.session) { window.location.href = 'index.html'; }
+  if (!res.data.session) { window.location.href = "index.html"; }
   else { carregarClientes(); }
 });
 
+document.getElementById("btn-sair").addEventListener("click", function() {
+  sb.auth.signOut().then(function() { window.location.href = "index.html"; });
+});
+
+document.getElementById("btn-novo").addEventListener("click", function() { abrirModal(); });
+document.getElementById("btn-cancelar").addEventListener("click", function() { fecharModal(); });
+document.getElementById("btn-salvar").addEventListener("click", function() { salvarCliente(); });
+document.getElementById("busca").addEventListener("input", function() { filtrar(); });
+document.getElementById("overlay").addEventListener("click", function(e) {
+  if (e.target === document.getElementById("overlay")) fecharModal();
+});
+
 async function carregarClientes() {
-  var res = await sb.from('clientes')
-    .select('id, nome, sexo, nascimento, calculos(id, atualizado_em)')
-    .order('nome');
+  var res = await sb.from("clientes").select("id, nome, sexo, nascimento, calculos(id, atualizado_em)").order("nome");
   if (res.error) { console.error(res.error); return; }
   todosClientes = res.data || [];
   renderLista(todosClientes);
 }
 
 function renderLista(clientes) {
-  var el = document.getElementById('lista');
+  var el = document.getElementById("lista");
   if (!clientes.length) {
-    el.innerHTML = '<div class="vazio"><p>Nenhum cliente encontrado.<br>Clique em &quot;+ Novo Cliente&quot; para come&ccedil;ar.</p></div>';
+    el.innerHTML = "<div class=\"vazio\"><p>Nenhum cliente encontrado. Clique em + Novo Cliente para comecar.</p></div>";
     return;
   }
-  var html = '';
+  var html = "";
   for (var i = 0; i < clientes.length; i++) {
     var c = clientes[i];
     var inicial = c.nome.charAt(0).toUpperCase();
-    var sexoLbl = c.sexo === 'F' ? 'Feminino' : 'Masculino';
-    var nascFmt = c.nascimento ? new Date(c.nascimento + 'T12:00:00').toLocaleDateString('pt-BR') : '';
+    var sexoLbl = c.sexo === "F" ? "Feminino" : "Masculino";
+    var nascFmt = c.nascimento ? new Date(c.nascimento + "T12:00:00").toLocaleDateString("pt-BR") : "";
     var nCalc = c.calculos ? c.calculos.length : 0;
-    var ultimoCalc = nCalc > 0
-      ? 'Ultimo: ' + new Date(c.calculos.sort(function(a,b){ return new Date(b.atualizado_em)-new Date(a.atualizado_em); })[0].atualizado_em).toLocaleDateString('pt-BR')
-      : 'Sem calculos';
-    var meta = sexoLbl + (nascFmt ? ' - ' + nascFmt : '') + ' - ' + nCalc + ' calculo(s) - ' + ultimoCalc;
-    var cid = c.id;
-    var cnome = encodeURIComponent(c.nome);
-    var csexo = c.sexo;
-    var cnasc = c.nascimento || '';
-    html += '<div class="cliente-item" onclick="abrirCliente('' + cid + '','' + cnome + '','' + csexo + '','' + cnasc + '')">';
-    html += '<div class="ci-inicial">' + inicial + '</div>';
-    html += '<div class="ci-info"><div class="ci-nome">' + c.nome + '</div><div class="ci-meta">' + meta + '</div></div>';
-    html += '<div class="ci-seta">&#8250;</div></div>';
+    var metaTxt = sexoLbl + (nascFmt ? " - " + nascFmt : "") + " - " + nCalc + " calculo(s)";
+    html += "<div class=\"cliente-item\" data-id=\"" + c.id + "\" data-nome=\"" + encodeURIComponent(c.nome) + "\" data-sexo=\"" + c.sexo + "\" data-nasc=\"" + (c.nascimento || "") + "\">";
+    html += "<div class=\"ci-inicial\">" + inicial + "</div>";
+    html += "<div class=\"ci-info\"><div class=\"ci-nome\">" + c.nome + "</div><div class=\"ci-meta\">" + metaTxt + "</div></div>";
+    html += "<div class=\"ci-seta\">&#8250;</div></div>";
   }
   el.innerHTML = html;
+  document.querySelectorAll(".cliente-item").forEach(function(el) {
+    el.addEventListener("click", function() {
+      var id = this.getAttribute("data-id");
+      var nome = this.getAttribute("data-nome");
+      var sexo = this.getAttribute("data-sexo");
+      var nasc = this.getAttribute("data-nasc");
+      window.location.href = "simulador.html?cliente_id=" + id + "&nome=" + nome + "&sexo=" + sexo + "&nasc=" + nasc;
+    });
+  });
 }
 
 function filtrar() {
-  var q = document.getElementById('busca').value.toLowerCase();
-  renderLista(todosClientes.filter(function(c){ return c.nome.toLowerCase().indexOf(q) >= 0; }));
-}
-
-function abrirCliente(id, nome, sexo, nasc) {
-  window.location.href = 'simulador.html?cliente_id=' + id + '&nome=' + nome + '&sexo=' + sexo + '&nasc=' + nasc;
+  var q = document.getElementById("busca").value.toLowerCase();
+  renderLista(todosClientes.filter(function(c) { return c.nome.toLowerCase().indexOf(q) >= 0; }));
 }
 
 function abrirModal() {
-  document.getElementById('overlay').classList.add('open');
-  setTimeout(function(){ document.getElementById('nc-nome').focus(); }, 100);
+  document.getElementById("overlay").classList.add("open");
+  document.getElementById("nc-nome").focus();
 }
 
 function fecharModal() {
-  document.getElementById('overlay').classList.remove('open');
-  document.getElementById('nc-nome').value = '';
-  document.getElementById('nc-nasc').value = '';
+  document.getElementById("overlay").classList.remove("open");
+  document.getElementById("nc-nome").value = "";
+  document.getElementById("nc-nasc").value = "";
 }
 
 async function salvarCliente() {
-  var nome = document.getElementById('nc-nome').value.trim();
-  var sexo = document.getElementById('nc-sexo').value;
-  var nasc = document.getElementById('nc-nasc').value || null;
-  if (!nome) { alert('Informe o nome do cliente.'); return; }
-  var btn = document.getElementById('btn-salvar');
+  var nome = document.getElementById("nc-nome").value.trim();
+  var sexo = document.getElementById("nc-sexo").value;
+  var nasc = document.getElementById("nc-nasc").value || null;
+  if (!nome) { alert("Informe o nome do cliente."); return; }
+  var btn = document.getElementById("btn-salvar");
   btn.disabled = true;
-  btn.textContent = 'Salvando...';
-  var res = await sb.from('clientes').insert({ nome: nome, sexo: sexo, nascimento: nasc }).select().single();
+  btn.textContent = "Salvando...";
+  var res = await sb.from("clientes").insert({ nome: nome, sexo: sexo, nascimento: nasc }).select().single();
   if (res.error) {
-    alert('Erro ao salvar: ' + res.error.message);
+    alert("Erro ao salvar: " + res.error.message);
     btn.disabled = false;
-    btn.textContent = 'Criar Cliente';
+    btn.textContent = "Criar Cliente";
   } else {
     fecharModal();
-    abrirCliente(res.data.id, encodeURIComponent(res.data.nome), res.data.sexo, res.data.nascimento || '');
+    var d = res.data;
+    window.location.href = "simulador.html?cliente_id=" + d.id + "&nome=" + encodeURIComponent(d.nome) + "&sexo=" + d.sexo + "&nasc=" + (d.nascimento || "");
   }
 }
-
-async function sair() {
-  await sb.auth.signOut();
-  window.location.href = 'index.html';
-}
-
-document.getElementById('overlay').addEventListener('click', function(e) {
-  if (e.target === document.getElementById('overlay')) fecharModal();
-});
 </script>
 </body>
 </html>

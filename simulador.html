@@ -115,6 +115,8 @@ select.meta-in option{color:#000;background:#fff;}
 .pi-sub{font-size:11px;color:var(--ink3);text-align:right;margin-top:2px;}
 .btn-del{width:28px;height:28px;border-radius:50%;border:1px solid var(--rule);background:var(--bg);cursor:pointer;color:var(--ink3);font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s;}
 .btn-del:hover{background:var(--danger-bg);color:#8a1a1a;border-color:var(--danger-br);}
+.btn-edit{width:28px;height:28px;border-radius:50%;border:1px solid var(--rule);background:var(--bg);cursor:pointer;color:var(--ink3);font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s;}
+.btn-edit:hover{background:var(--accent-lt);color:var(--accent);border-color:var(--accent2);}
 .empty-msg{text-align:center;padding:26px;color:var(--ink3);font-size:13px;border:2px dashed var(--rule);border-radius:10px;}
 
 /* ── ALERTAS ── */
@@ -405,7 +407,8 @@ select.meta-in option{color:#000;background:#fff;}
       <span class="pf-lbl">Anotações</span>
       <input class="pf-in" type="text" id="pf-nota" placeholder="Empresa, função, obs.">
     </div>
-    <button class="btn-add" onclick="adicionarPeriodo()">+ Adicionar</button>
+    <button class="btn-add" id="btn-adicionar" onclick="adicionarPeriodo()">+ Adicionar</button>
+      <button class="btn-add" id="btn-cancelar-edicao" onclick="cancelarEdicao()" style="display:none;background:#f5f3ef;color:#5c5852;border:1px solid #e8e4dc;">Cancelar edição</button>
   </div>
   <div class="pf-alerta" id="pf-alerta"></div>
   <div class="pf-preview" id="pf-preview"></div>
@@ -698,6 +701,7 @@ let grauEsp      = 25;
 let complementou = true; // default: sim (para tipos que têm toggle)
 let periodos     = [];
 let idCounter    = 0;
+let editandoId   = null;
 
 // ══════════════════════════════════════════════════════════════
 // UTILITÁRIOS
@@ -1252,26 +1256,81 @@ function adicionarPeriodo(){
     if(!confirm('⚠ Rural até 31/10/1991 com data de fim após 31/10/1991. Confirmar mesmo assim?'))return;
   }
 
-  // Sobreposição
+  // Sobreposição (excluir o período em edição da verificação)
   const d1=new Date(ini+'T00:00:00'),d2=new Date(fim+'T00:00:00');
-  const sob=periodos.filter(p=>d1<new Date(p.fim+'T00:00:00')&&d2>new Date(p.inicio+'T00:00:00'));
+  const sob=periodos.filter(p=>p.id!==editandoId&&d1<new Date(p.fim+'T00:00:00')&&d2>new Date(p.inicio+'T00:00:00'));
   if(sob.length){
     const nomes=sob.map(p=>`"${META[p.tipo]?.label}" (${fmtData(p.inicio)}→${fmtData(p.fim)})`).join('\n');
-    if(!confirm(`⚠ Sobreposição detectada com:\n${nomes}\n\nConcomitância: salários somam, tempo NÃO duplica (art. 96, III, Lei 8.213/91). Adicionar mesmo assim?`))return;
+    if(!confirm(`⚠ Sobreposição detectada com:\n${nomes}\n\nConcomitância: salários somam, tempo NÃO duplica (art. 96, III, Lei 8.213/91). Continuar mesmo assim?`))return;
   }
 
   const tipo=tipoReal();
   const compl=TIPOS_COM_COMPL.includes(tipo)?complementou:null;
 
-  periodos.push({id:++idCounter,tipo,inicio:ini,fim,dias,nota,complementou:compl});
+  if(editandoId!==null){
+    // Modo edição: atualizar o período existente
+    const idx=periodos.findIndex(p=>p.id===editandoId);
+    if(idx>=0) periodos[idx]={...periodos[idx],tipo,inicio:ini,fim,dias,nota,complementou:compl};
+    editandoId=null;
+    document.getElementById('btn-adicionar').textContent='+ Adicionar';
+    document.getElementById('btn-cancelar-edicao').style.display='none';
+  } else {
+    // Modo adição normal
+    periodos.push({id:++idCounter,tipo,inicio:ini,fim,dias,nota,complementou:compl});
+  }
+
   document.getElementById('pf-inicio').value='';
   document.getElementById('pf-fim').value='';
   document.getElementById('pf-nota').value='';
   document.getElementById('pf-preview').textContent='';
   document.getElementById('pf-alerta').style.display='none';
+  document.getElementById('pf-title').textContent='Adicionar período — Empregado / CLT';
 
   renderLista();
   recalcular();
+}
+
+function editarPeriodo(id){
+  const p=periodos.find(x=>x.id===id);
+  if(!p) return;
+  editandoId=id;
+
+  // Preencher formulário com dados do período
+  document.getElementById('pf-inicio').value=p.inicio;
+  document.getElementById('pf-fim').value=p.fim;
+  document.getElementById('pf-nota').value=p.nota||'';
+
+  // Selecionar o tipo correto
+  const tipoBase=p.tipo.startsWith('esp')?'esp':p.tipo;
+  selTipo(tipoBase);
+  if(p.tipo.startsWith('esp')){
+    const grau=parseInt(p.tipo.replace('esp',''));
+    selGrauEsp(grau);
+  }
+  if(META[p.tipo]?.reduzida&&p.complementou!==null){
+    selCompl(p.complementou);
+  }
+
+  // Mudar botão e mostrar cancelar
+  document.getElementById('btn-adicionar').textContent='Salvar alteração';
+  document.getElementById('btn-cancelar-edicao').style.display='inline-block';
+  document.getElementById('pf-title').textContent='Editando período — '+META[p.tipo]?.label;
+
+  // Scroll para o formulário
+  document.getElementById('btn-adicionar').scrollIntoView({behavior:'smooth',block:'center'});
+  atualizarPreview();
+}
+
+function cancelarEdicao(){
+  editandoId=null;
+  document.getElementById('pf-inicio').value='';
+  document.getElementById('pf-fim').value='';
+  document.getElementById('pf-nota').value='';
+  document.getElementById('pf-preview').textContent='';
+  document.getElementById('pf-alerta').style.display='none';
+  document.getElementById('btn-adicionar').textContent='+ Adicionar';
+  document.getElementById('btn-cancelar-edicao').style.display='none';
+  document.getElementById('pf-title').textContent='Adicionar período — Empregado / CLT';
 }
 
 function removerPeriodo(id){
@@ -1320,7 +1379,8 @@ function renderLista(){
         <div class="pi-sub">${p.dias} dias</div>
         ${temFator?`<div class="pi-sub" style="color:var(--clr-esp)">→ ${fmtAMD(Math.round(conv.antesReforma*conv.fator),true)} conv.</div>`:''}
       </div>
-      <button class="btn-del" onclick="removerPeriodo(${p.id})">×</button>
+      <button class="btn-edit" onclick="editarPeriodo(${p.id})" title="Editar">✎</button>
+      <button class="btn-del" onclick="removerPeriodo(${p.id})" title="Excluir">×</button>
     </div>`;
   }).join('');
 }

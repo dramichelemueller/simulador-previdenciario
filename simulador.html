@@ -702,11 +702,28 @@ let idCounter    = 0;
 // ══════════════════════════════════════════════════════════════
 // UTILITÁRIOS
 // ══════════════════════════════════════════════════════════════
+// Calculo de diferenca de datas conforme metodologia INSS/previdenciaria
+// Inclui o dia final (art. 75 Decreto 3.048/99) e usa mes=30 dias para normalizacao
+// Retorna o numero de dias no sistema 30/360 (1 ano=360 dias, 1 mes=30 dias)
 function diffDias(a,b){
-  return Math.max(0,Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000));
+  if(!a||!b) return 0;
+  const d1=new Date(a+'T00:00:00'),d2=new Date(b+'T00:00:00');
+  if(d2<=d1) return 0;
+  let A=d2.getFullYear()-d1.getFullYear();
+  let M=d2.getMonth()-d1.getMonth();
+  let D=d2.getDate()-d1.getDate()+1; // +1 inclui o dia final
+  if(D<=0){M--;const prev=new Date(d2.getFullYear(),d2.getMonth(),0);D+=prev.getDate();}
+  if(M<0){A--;M+=12;}
+  if(D>30){M++;D-=30;} // normaliza: mes tem 30 dias
+  if(M>=12){A++;M-=12;}
+  return A*360+M*30+D;
 }
 function diasParaAMD(d){
-  const a=Math.floor(d/365.25),r=d-Math.floor(a*365.25),m=Math.floor(r/30.4375),di=Math.round(r-Math.floor(m*30.4375));
+  // Método previdenciário: 1 ano = 12 meses = 360 dias, 1 mês = 30 dias (Decreto 3.048/99)
+  const a=Math.floor(d/360);
+  const r=d-a*360;
+  const m=Math.floor(r/30);
+  const di=r-m*30;
   return{anos:a,meses:m,dias:di};
 }
 function fmtAMD(d,c){
@@ -821,9 +838,9 @@ function calcularTotais(){
   return{
     sexo,nasc,ref,detalhes,alertas,
     diasTC_total,diasTC_reforma,diasIdade_total,
-    tcAnos:diasTC_total/365.25,
-    tcReformaAnos:diasTC_reforma/365.25,
-    tcIdadeAnos:diasIdade_total/365.25,
+    tcAnos:diasTC_total/360,
+    tcReformaAnos:diasTC_reforma/360,
+    tcIdadeAnos:diasIdade_total/360,
     diasEsp,
     idadeAtual,
   };
@@ -876,15 +893,15 @@ function analisarRegras(R){
 
   // ── Direito Adquirido ───────────────────────────────────────
   const tcMinDA=TC_MIN_DA[sexo];
-  // Tolerância de 1 dia para arredondamento na conversão dias/365.25
-  const possuiDA=(tcReformaAnos+1/365.25)>=tcMinDA;
+  // Tolerância de 1 dia para arredondamento na conversão dias/360
+  const possuiDA=(tcReformaAnos+1/360)>=tcMinDA;
   regras.push({
     id:'da',grupo:'Direito Adquirido (pré-reforma)',
     nome:'Aposentadoria por Tempo de Contribuição',
     desc:`Req: ${tcMinDA} anos de TC até 13/11/2019 · Sem idade mínima`,
     cor:'#1a5a3a',ok:possuiDA,
     tcVal:tcReformaAnos,tcReq:tcMinDA,idadeReq:null,
-    diasFalta:possuiDA?0:Math.round(Math.max(0,tcMinDA-tcReformaAnos)*365.25),
+    diasFalta:possuiDA?0:Math.round(Math.max(0,tcMinDA-tcReformaAnos)*360),
     expl:possuiDA?`✓ Possuía ${fmtAMD(R.diasTC_reforma)} de TC em 13/11/2019`:`Possuía ${tcReformaAnos.toFixed(1)}a em 13/11/2019 — faltava ${(tcMinDA-tcReformaAnos).toFixed(1)}a`,
     tipo:'tc',
   });
@@ -896,7 +913,7 @@ function analisarRegras(R){
   const ptOk=ptAtual!==null&&ptAtual>=ptNec&&tcAnos>=tcMinP;
   let diasFaltaPt=null;
   if(!ptOk&&idadeAtual!==null){
-    const fTC=Math.max(0,tcMinP-tcAnos)*365.25;
+    const fTC=Math.max(0,tcMinP-tcAnos)*360;
     const fPt=ptAtual!==null?Math.max(0,ptNec-ptAtual)*365.25/2:99999;
     diasFaltaPt=Math.ceil(Math.max(fTC,fPt));
   }
@@ -917,8 +934,8 @@ function analisarRegras(R){
   const idMinPOk=idadeAtual!==null&&idadeAtual>=idMinP&&tcAnos>=tcMinIP;
   let diasFaltaIP=null;
   if(!idMinPOk&&idadeAtual!==null){
-    const fI=Math.max(0,idMinP-idadeAtual)*365.25;
-    const fT=Math.max(0,tcMinIP-tcAnos)*365.25;
+    const fI=Math.max(0,idMinP-idadeAtual)*360;
+    const fT=Math.max(0,tcMinIP-tcAnos)*360;
     diasFaltaIP=Math.ceil(Math.max(fI,fT));
   }
   regras.push({
@@ -974,8 +991,8 @@ function analisarRegras(R){
     const ped100Ok=tcAnos>=tcPed100&&idadeAtual!==null&&idadeAtual>=idMinPed100;
     let dfP100=null;
     if(!ped100Ok&&idadeAtual!==null){
-      const fT=Math.max(0,tcPed100-tcAnos)*365.25;
-      const fI=Math.max(0,idMinPed100-idadeAtual)*365.25;
+      const fT=Math.max(0,tcPed100-tcAnos)*360;
+      const fI=Math.max(0,idMinPed100-idadeAtual)*360;
       dfP100=Math.ceil(Math.max(fT,fI));
     }
     regras.push({
@@ -1003,8 +1020,8 @@ function analisarRegras(R){
   const idPermOk=idadeAtual!==null&&idadeAtual>=idPermReq&&tcIdadeAnos>=15;
   let dfIdPerm=null;
   if(!idPermOk&&idadeAtual!==null){
-    const fI=Math.max(0,idPermReq-idadeAtual)*365.25;
-    const fT=Math.max(0,15-tcIdadeAnos)*365.25;
+    const fI=Math.max(0,idPermReq-idadeAtual)*360;
+    const fT=Math.max(0,15-tcIdadeAnos)*360;
     dfIdPerm=Math.ceil(Math.max(fI,fT));
   }
   regras.push({
@@ -1026,8 +1043,8 @@ function analisarRegras(R){
       const trFOk=idadeAtual!==null&&idadeAtual>=idTransF&&tcIdadeAnos>=15;
       let dfTrF=null;
       if(!trFOk&&idadeAtual!==null){
-        const fI=Math.max(0,idTransF-idadeAtual)*365.25;
-        const fT=Math.max(0,15-tcIdadeAnos)*365.25;
+        const fI=Math.max(0,idTransF-idadeAtual)*360;
+        const fT=Math.max(0,15-tcIdadeAnos)*360;
         dfTrF=Math.ceil(Math.max(fI,fT));
       }
       regras.push({
@@ -1053,17 +1070,17 @@ function analisarRegras(R){
   [25,20,15].forEach(grau=>{
     const dEsp=diasEsp[grau]||0;
     if(dEsp===0)return;
-    const espAnos=dEsp/365.25;
+    const espAnos=dEsp/360;
     const req=ESP_PONTOS[grau];
     const dEspReforma=calcularEspAteReforma(grau);
-    const possuiDAEsp=dEspReforma/365.25>=req.tc;
+    const possuiDAEsp=dEspReforma/360>=req.tc;
     const ptAtualEsp=idadeAtual!==null?idadeAtual+espAnos:null;
     const espTCOk=espAnos>=req.tc;
     const espPtsOk=ptAtualEsp!==null&&ptAtualEsp>=req.pts;
     const espOk=possuiDAEsp||(espTCOk&&espPtsOk);
     let dfEsp=null;
     if(!espOk&&!possuiDAEsp&&idadeAtual!==null){
-      const fT=Math.max(0,req.tc-espAnos)*365.25;
+      const fT=Math.max(0,req.tc-espAnos)*360;
       const fPts=ptAtualEsp!==null?Math.max(0,req.pts-ptAtualEsp)*365.25/2:99999;
       dfEsp=Math.ceil(Math.max(fT,fPts));
     }

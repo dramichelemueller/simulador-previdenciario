@@ -138,7 +138,7 @@ function renderLista(clientes) {
       var nome = this.getAttribute("data-nome");
       var sexo = this.getAttribute("data-sexo");
       var nasc = this.getAttribute("data-nasc");
-      window.location.href = "simulador.html?cliente_id=" + id + "&nome=" + nome + "&sexo=" + sexo + "&nasc=" + nasc;
+      window.location.href = "app.html?cliente_id=" + id + "&nome=" + nome + "&sexo=" + sexo + "&nasc=" + nasc;
     });
   });
 }
@@ -175,7 +175,7 @@ async function salvarCliente() {
   } else {
     fecharModal();
     var d = res.data;
-    window.location.href = "simulador.html?cliente_id=" + d.id + "&nome=" + encodeURIComponent(d.nome) + "&sexo=" + d.sexo + "&nasc=" + (d.nascimento || "");
+    window.location.href = "app.html?cliente_id=" + d.id + "&nome=" + encodeURIComponent(d.nome) + "&sexo=" + d.sexo + "&nasc=" + (d.nascimento || "");
   }
 }
 </script>

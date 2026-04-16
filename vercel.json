@@ -1,19 +1,13 @@
 {
   "version": 2,
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        }
-      ]
-    }
+  "builds": [
+    { "src": "*.html", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/", "dest": "/index.html" },
+    { "src": "/clientes", "dest": "/clientes.html" },
+    { "src": "/simulador", "dest": "/simulador.html" },
     { "src": "/(.*)\\.html", "dest": "/$1.html" },
-    { "src": "/(.*)", "dest": "/$1" }
+    { "src": "/(.*)", "dest": "/$1.html" }
   ]
 }

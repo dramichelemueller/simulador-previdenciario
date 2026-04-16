@@ -1634,14 +1634,12 @@ function renderRegras(R,regras,melhor){
     let pct;
     if(r.ok){
       pct=100;
-    } else if(r.tipo==='inelegível'||r.tipo==='inelegível_definitivo'||r.tipo==='inelegivel'||r.tipo==='inelegivel_definitivo'){
-      pct=r.tcReq>0?Math.min(99,(r.tcVal/r.tcReq)*100):0;
     } else if(r.id==='pontos'){
       const ptAtualRender=r.expl.match(/^([\d.]+) pontos/);
       const ptNecRender=parseInt(r.desc.match(/^(\d+) pontos/)?.[1]||'93');
       pct=ptAtualRender?Math.min(99,(parseFloat(ptAtualRender[1])/ptNecRender)*100):Math.min(99,r.tcReq>0?(r.tcVal/r.tcReq)*100:0);
     } else {
-      pct=r.ok?100:(r.tcReq>0?Math.min(99,(r.tcVal/r.tcReq)*100):0);
+      pct=r.tcReq>0?Math.min(99,(r.tcVal/r.tcReq)*100):0;
     }
     const isSemTipo=r.tipo==='inelegível';
     const isMelhor=melhor&&melhor.regra.id===r.id;

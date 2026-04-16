@@ -1604,7 +1604,7 @@ function renderMarco(R){
     document.getElementById('m-faltava').textContent='✓ DA atingido';
     document.getElementById('m-faltava-sub').textContent=`Possuía ${tcMinDA}a de TC antes da reforma`;
   } else {
-    document.getElementById('m-faltava').textContent=fmtAMD(Math.round(faltava*365.25),true);
+    document.getElementById('m-faltava').textContent=fmtAMD(Math.round(faltava*360),true);
     document.getElementById('m-faltava-sub').textContent=`faltava para ATC (req: ${tcMinDA}a)`;
   }
 
@@ -1632,21 +1632,16 @@ function renderRegras(R,regras,melhor){
     }
     // Progresso real baseado no tipo de regra
     let pct;
-    if(r.tipo==='inelegivel'||r.tipo==='inelegivel_definitivo'){
-      pct=Math.min(100,(r.tcVal/r.tcReq)*100);
+    if(r.ok){
+      pct=100;
+    } else if(r.tipo==='inelegível'||r.tipo==='inelegível_definitivo'||r.tipo==='inelegivel'||r.tipo==='inelegivel_definitivo'){
+      pct=r.tcReq>0?Math.min(99,(r.tcVal/r.tcReq)*100):0;
     } else if(r.id==='pontos'){
-      // Pontos: progresso = pontos atuais / pontos necessários
       const ptAtualRender=r.expl.match(/^([\d.]+) pontos/);
       const ptNecRender=parseInt(r.desc.match(/^(\d+) pontos/)?.[1]||'93');
-      pct=ptAtualRender?Math.min(100,(parseFloat(ptAtualRender[1])/ptNecRender)*100):Math.min(100,(r.tcVal/r.tcReq)*100);
-    } else if(r.id==='idprogr'){
-      // Idade progressiva: progresso é o menor entre idade e TC
-      pct=Math.min(100,(r.tcVal/r.tcReq)*100);
-    } else if(r.tipo==='pedagio'){
-      // Pedágio: progresso de TC atual vs TC requerido
-      pct=Math.min(100,(r.tcVal/r.tcReq)*100);
+      pct=ptAtualRender?Math.min(99,(parseFloat(ptAtualRender[1])/ptNecRender)*100):Math.min(99,r.tcReq>0?(r.tcVal/r.tcReq)*100:0);
     } else {
-      pct=Math.min(100,(r.tcVal/r.tcReq)*100);
+      pct=r.ok?100:(r.tcReq>0?Math.min(99,(r.tcVal/r.tcReq)*100):0);
     }
     const isSemTipo=r.tipo==='inelegível';
     const isMelhor=melhor&&melhor.regra.id===r.id;
@@ -2073,7 +2068,7 @@ function exportarPDFTecnico(){
   const faltava=Math.max(0,tcMinDA-R.tcReformaAnos);
   const cols=[
     {l:'TC até 13/11/2019',v:fmtAMD(R.diasTC_reforma,true)},
-    {l:'Faltava p/ Direito Adquirido',v:faltava<=0?'✓ DA atingido':fmtAMD(Math.round(faltava*365.25),true)},
+    {l:'Faltava p/ Direito Adquirido',v:faltava<=0?'✓ DA atingido':fmtAMD(Math.round(faltava*360),true)},
     {l:'TC total (transição)',v:fmtAMD(R.diasTC_total,true)},
     {l:'TC (apos. por idade)',v:fmtAMD(R.diasIdade_total,true)},
   ];

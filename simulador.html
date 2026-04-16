@@ -1604,8 +1604,10 @@ function renderMarco(R){
     document.getElementById('m-faltava').textContent='✓ DA atingido';
     document.getElementById('m-faltava-sub').textContent=`Possuía ${tcMinDA}a de TC antes da reforma`;
   } else {
-    document.getElementById('m-faltava').textContent=fmtAMD(Math.round(faltava*365.25),true);
-    document.getElementById('m-faltava-sub').textContent=`faltava para ATC (req: ${tcMinDA}a)`;
+    const faltavaDias=Math.round(faltava*360);
+  const faltavaAMD=diasParaAMD(faltavaDias);
+  document.getElementById('m-faltava').textContent=fmtAMD(faltavaDias,true);
+    document.getElementById('m-faltava-sub').textContent=`para completar ${tcMinDA} anos de TC`;
   }
 
   const daBox=document.getElementById('da-box');
@@ -1632,21 +1634,18 @@ function renderRegras(R,regras,melhor){
     }
     // Progresso real baseado no tipo de regra
     let pct;
-    if(r.tipo==='inelegivel'||r.tipo==='inelegivel_definitivo'){
-      pct=Math.min(100,(r.tcVal/r.tcReq)*100);
+    if(r.ok){
+      pct=100;
+    } else if(r.tipo==='inelegível'||r.tipo==='inelegível_definitivo'){
+      pct=r.tcReq>0?Math.min(99,(r.tcVal/r.tcReq)*100):0;
     } else if(r.id==='pontos'){
       // Pontos: progresso = pontos atuais / pontos necessários
       const ptAtualRender=r.expl.match(/^([\d.]+) pontos/);
       const ptNecRender=parseInt(r.desc.match(/^(\d+) pontos/)?.[1]||'93');
-      pct=ptAtualRender?Math.min(100,(parseFloat(ptAtualRender[1])/ptNecRender)*100):Math.min(100,(r.tcVal/r.tcReq)*100);
-    } else if(r.id==='idprogr'){
-      // Idade progressiva: progresso é o menor entre idade e TC
-      pct=Math.min(100,(r.tcVal/r.tcReq)*100);
-    } else if(r.tipo==='pedagio'){
-      // Pedágio: progresso de TC atual vs TC requerido
-      pct=Math.min(100,(r.tcVal/r.tcReq)*100);
+      pct=ptAtualRender?Math.min(99,(parseFloat(ptAtualRender[1])/ptNecRender)*100):Math.min(99,r.tcReq>0?(r.tcVal/r.tcReq)*100:0);
     } else {
-      pct=Math.min(100,(r.tcVal/r.tcReq)*100);
+      // Pedágio, idade progressiva e demais: TC atual vs TC requerido
+      pct=r.tcReq>0?Math.min(99,(r.tcVal/r.tcReq)*100):0;
     }
     const isSemTipo=r.tipo==='inelegível';
     const isMelhor=melhor&&melhor.regra.id===r.id;
@@ -1952,8 +1951,8 @@ function exportarPDFCliente(){
     } else if(r.tipo==='inelegivel_definitivo'){
       doc.setTextColor(...CZ2);
       doc.text('Regra extinta — sem direito adquirido em 13/11/2019',xPos+6,yRow+13);
-    } else if(r.diasFalta||r.projecao){
-      const proj=r.projecao||'';
+    } else if(r.diasFalta||r.projeção){
+      const proj=r.projeção||'';
       const faltaTxt=r.diasFalta?'Falta: '+fmtAMD(r.diasFalta,true):'';
       const projTxt=proj?'Proj: '+proj:'';
       doc.text((faltaTxt+(faltaTxt&&projTxt?' | ':'')+projTxt)||'—',xPos+6,yRow+13);
@@ -2103,10 +2102,10 @@ function exportarPDFTecnico(){
     r.ok?'✓ SIM'
       :r.tipo==='inelegivel_definitivo'?'Regra extinta'
       :r.diasFalta?'Falta: '+fmtAMD(r.diasFalta,true)
-      :r.projecao?'—':'—',
+      :r.projeção?'—':'—',
     r.ok?'—'
       :r.tipo==='inelegivel_definitivo'?'—'
-      :r.projecao?r.projecao:'—',
+      :r.projeção?r.projeção:'—',
   ]);
   doc.autoTable({
     startY:y,

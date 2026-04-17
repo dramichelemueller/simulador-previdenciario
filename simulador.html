@@ -1086,7 +1086,7 @@ function analisarRegras(R){
     desc:`${ptNec} pontos em ${ano} (idade+TC) · TC mín: ${tcMinP}a`,
     cor:'#1a3a7a',ok:ptOk,
     tcVal:tcAnos,tcReq:tcMinP,idadeReq:null,
-    diasFalta:ptOk?0:null,
+    diasFalta:ptOk?0:Math.max(1,Math.round((tcMinP-tcAnos)*360)),
     projeção:ptOk?null:projPt,
     expl:idadeAtual!==null
       ?`${ptAtual!==null?ptAtual.toFixed(1):0} pontos (${idadeAtual.toFixed(1)}a idade + ${tcAnos.toFixed(1)}a TC) — necessário: ${ptNec}`
@@ -1108,7 +1108,7 @@ function analisarRegras(R){
     desc:`${idMinP.toFixed(1).replace('.0','').replace('.5','½')} anos em ${ano} + TC mín: ${tcMinIP}a`,
     cor:'#1a3a7a',ok:idMinPOk,
     tcVal:tcAnos,tcReq:tcMinIP,idadeReq:idMinP,
-    diasFalta:idMinPOk?0:null,
+    diasFalta:idMinPOk?0:Math.max(1,Math.round((tcMinIP-tcAnos)*360)),
     projeção:idMinPOk?null:projIP,
     expl:idadeAtual!==null
       ?`Idade: ${idadeAtual.toFixed(1)}a (req: ${idMinP.toFixed(1)}a) · TC: ${tcAnos.toFixed(1)}a (req: ${tcMinIP}a)`
@@ -1201,7 +1201,7 @@ function analisarRegras(R){
     desc:`${idPermReq} anos + 15 anos de TC`,
     cor:'#3a5a1a',ok:idPermOk,
     tcVal:tcIdadeAnos,tcReq:15,idadeReq:idPermReq,
-    diasFalta:idPermOk?0:null,
+    diasFalta:idPermOk?0:Math.max(1,Math.round((15-tcIdadeAnos)*360)),
     projeção:idPermOk?null:projIdPerm,
     expl:idadeAtual!==null
       ?`Idade: ${idadeAtual.toFixed(1)}a (req: ${idPermReq}a) · TC (incl. reduzidas): ${tcIdadeAnos.toFixed(1)}a`
@@ -1222,7 +1222,7 @@ function analisarRegras(R){
         desc:`${idTransF}a em ${ano} + 15 anos de TC`,
         cor:'#3a5a1a',ok:trFOk,
         tcVal:tcIdadeAnos,tcReq:15,idadeReq:idTransF,
-        diasFalta:trFOk?0:null,
+        diasFalta:trFOk?0:Math.max(1,Math.round((15-tcIdadeAnos)*360)),
         projeção:trFOk?null:projTrF,
         expl:idadeAtual!==null
           ?`Idade: ${idadeAtual.toFixed(1)}a (req: ${idTransF}a) · TC (incl. reduzidas): ${tcIdadeAnos.toFixed(1)}a`
@@ -1251,8 +1251,8 @@ function analisarRegras(R){
     const espPtsOk=ptAtualEsp!==null&&ptAtualEsp>=req.pts;
     const espOk=possuiDAEsp||(espTCOk&&espPtsOk);
     let projEsp=null;
-    if(!espOk&&!possuiDAEsp&&idadeAtual!==null){
-      // Projetar quando ambos TC especial e pontos serão atingidos
+    if(!espOk&&!possuiDAEsp&&idadeAtual!==null&&espTCOk){
+      // Só projeta se JÁ tem o TC especial necessário — senão nunca vai fechar sem vínculo especial ativo
       projEsp=projPontos(req.tc*360,nasc);
     }
     const nomeRisco={25:'Baixo Risco',20:'Médio Risco',15:'Alto Risco'}[grau];
@@ -1264,14 +1264,14 @@ function analisarRegras(R){
         :`${req.pts} pontos (idade+TC total) + ${req.tc}a especial — igual H e M`,
       cor:'#6a1a7a',ok:espOk,
       tcVal:espAnos,tcReq:req.tc,idadeReq:null,
-      diasFalta:espOk?0:null,
+      diasFalta:espOk?0:(espTCOk?Math.max(1,1):null),
       projeção:espOk?null:projEsp,
       expl:possuiDAEsp
         ?`✓ Possuía ${(dEspReforma/360).toFixed(1)}a especial em 13/11/2019`
         :idadeAtual!==null
           ?`TC especial: ${fmtAMD(dEsp,true)} · Pontos: ${ptAtualEsp!==null?ptAtualEsp.toFixed(1):'-'} (req: ${req.pts})`
           :'Informe data de nascimento',
-      tipo:possuiDAEsp?'ok':espOk?'ok':'falta',
+      tipo:possuiDAEsp?'ok':espOk?'ok':espTCOk?'falta':'inelegível',
       possuiDAEsp,
     });
   });

@@ -1680,7 +1680,7 @@ function renderRegras(R,regras,melhor){
       ${!melhor.regra.ok&&melhor.regra.diasFalta?`
         <div style="margin-top:7px;font-size:12px;color:var(--ink2)">
           Faltam: <strong>${fmtAMD(melhor.regra.diasFalta)}</strong>
-          ${melhor.regra.projeção?` · Projeção: <strong>${melhor.regra.projeção}</strong>`:''}
+          ${melhor.regra.projecao?` · Projeção: <strong>${melhor.regra.projecao}</strong>`:''}
         </div>`:''}
     </div>`;
   }
@@ -1890,7 +1890,7 @@ function exportarPDFCliente(){
       doc.text('Modalidade: '+traduzirRegra(melhor.regra.id)+'   |   Procure sua advogada para dar entrada.',mL+7,y+15);
     } else {
       const diasFalta=melhor.regra.diasFalta||0;
-      const projData=projetarTC(diasFalta);
+      const projData=melhor.regra.projeção||null;
       doc.text('Melhor caminho: '+traduzirRegra(melhor.regra.id),mL+7,y+8);
       doc.setFont('helvetica','normal');doc.setFontSize(9);
       doc.text('Tempo restante: '+fmtAMD(diasFalta)+(projData?'   |   Previsao: '+projData:''),mL+7,y+16);

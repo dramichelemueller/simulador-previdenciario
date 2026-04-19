@@ -1067,7 +1067,7 @@ function analisarRegras(R){
     expl:possuiDA
       ?`✓ Possuía ${fmtAMD(diasTC_reforma)} de TC em 13/11/2019`
       :`Possuía ${fmtAMD(diasTC_reforma)} em 13/11/2019 — faltava ${fmtAMD(Math.round((tcMinDA-tcReformaAnos)*360),true)} · Regra extinta`,
-    tipo:possuiDA?'ok':'inelegível_definitivo', // novo tipo: não projetável
+    tipo:possuiDA?'ok':'inelegivel_definitivo', // novo tipo: não projetável
   });
 
   // ─────────────────────────────────────────────────────────────
@@ -1149,7 +1149,7 @@ function analisarRegras(R){
         :faltavaDA>=2?`Não elegível — faltava ${fmtAMD(Math.round(faltavaDA*360),true)} (exige menos de 2 anos)`
         :'Não elegível',
       cor:'#9c9890',ok:false,tcVal:tcReformaAnos,tcReq:tcMinDA,
-      diasFalta:null,projeção:null,expl:'',tipo:'inelegível',
+      diasFalta:null,projeção:null,expl:'',tipo:'inelegivel',
     });
   }
 
@@ -1182,7 +1182,7 @@ function analisarRegras(R){
       nome:'Pedágio de 100%',
       desc:'Já possuía DA — não se aplica',
       cor:'#9c9890',ok:false,tcVal:tcReformaAnos,tcReq:tcMinDA,
-      diasFalta:null,projeção:null,expl:'',tipo:'inelegível',
+      diasFalta:null,projeção:null,expl:'',tipo:'inelegivel',
     });
   }
 
@@ -1294,7 +1294,7 @@ function calcularEspAteReforma(grau){
 // MELHOR REGRA
 // ══════════════════════════════════════════════════════════════
 function melhorRegra(regras){
-  const comDir=regras.filter(r=>r.ok&&r.tipo!=='inelegível'&&r.tipo!=='inelegível_definitivo');
+  const comDir=regras.filter(r=>r.ok&&r.tipo!=='inelegivel'&&r.tipo!=='inelegivel_definitivo');
   if(comDir.length){
     const da=comDir.find(r=>r.id==='da');
     if(da) return{regra:da,tipo:'ok',msg:`Direito Adquirido - pode se aposentar sem idade mínima`};
@@ -1302,7 +1302,7 @@ function melhorRegra(regras){
     if(daEsp) return{regra:daEsp,tipo:'ok',msg:daEsp.nome+' - direito adquirido antes da reforma'};
     return{regra:comDir[0],tipo:'ok',msg:comDir[0].nome+' - requisitos atingidos'};
   }
-  const eleg=regras.filter(r=>r.tipo!=='inelegível'&&r.diasFalta!==null&&r.diasFalta>0);
+  const eleg=regras.filter(r=>r.tipo!=='inelegivel'&&r.diasFalta!==null&&r.diasFalta>0);
   if(!eleg.length)return null;
   eleg.sort((a,b)=>a.diasFalta-b.diasFalta);
   const m=eleg[0];
@@ -1647,7 +1647,7 @@ function renderRegras(R,regras,melhor){
     } else {
       pct=Math.min(100,(r.tcVal/r.tcReq)*100);
     }
-    const isSemTipo=r.tipo==='inelegível';
+    const isSemTipo=r.tipo==='inelegivel';
     const isMelhor=melhor&&melhor.regra.id===r.id;
     html+=`<div class="regra-row" style="${isSemTipo?'opacity:.45':''}">
       <div>
@@ -1664,14 +1664,14 @@ function renderRegras(R,regras,melhor){
       </div>
       <div class="regra-nums">
         ${!isSemTipo?`<div class="regra-tempo" style="color:${r.cor}">${r.tcVal.toFixed(1)} anos</div>`:''}
-        <div class="regra-status ${r.ok?'ok':r.tipo==='inelegível_definitivo'?'falta':'falta'}">
+        <div class="regra-status ${r.ok?'ok':r.tipo==='inelegivel_definitivo'?'falta':'falta'}">
           ${r.ok?'✓ Requisito atingido'
-            :r.tipo==='inelegível_definitivo'?'Regra extinta'
+            :r.tipo==='inelegivel_definitivo'?'Regra extinta'
             :r.diasFalta?'Falta: '+fmtAMD(r.diasFalta,true)
-            :r.projeção?'—':'—'}
+            :r.projecao?'—':'—'}
         </div>
-        ${!r.ok&&r.tipo==='inelegível_definitivo'?'<div class="regra-proj" style="color:#8a1a1a;font-size:10px">Não atingiu os requisitos até 13/11/2019</div>'
-          :!r.ok&&r.projeção?`<div class="regra-proj">Proj: ${r.projeção}</div>`:''}
+        ${!r.ok&&r.tipo==='inelegivel_definitivo'?'<div class="regra-proj" style="color:#8a1a1a;font-size:10px">Não atingiu os requisitos até 13/11/2019</div>'
+          :!r.ok&&r.projecao?`<div class="regra-proj">Proj: ${r.projecao}</div>`:''}
       </div>
     </div>`;
   });
@@ -1925,7 +1925,7 @@ function exportarPDFCliente(){
   doc.text('Se houver períodos sem contribuição, a data real de aposentadoria será mais tarde.', mL+6, y+11);
   y+=18;
 
-  const regrasVisiveis=regras.filter(r=>r.tipo!=='inelegível');
+  const regrasVisiveis=regras.filter(r=>r.tipo!=='inelegivel');
   const colW=(CW-4)/2;
   let col=0, yRow=y;
 
@@ -2097,7 +2097,7 @@ function exportarPDFTecnico(){
   }
 
   // Tabela regras
-  const rRows=regras.filter(r=>r.tipo!=='inelegível'&&r.tipo!=='inelegivel').map(r=>[
+  const rRows=regras.filter(r=>r.tipo!=='inelegivel'&&r.tipo!=='inelegivel').map(r=>[
     r.nome,r.desc,r.tcVal.toFixed(1)+'a',
     r.ok?'✓ SIM'
       :r.tipo==='inelegivel_definitivo'?'Regra extinta'

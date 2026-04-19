@@ -944,31 +944,23 @@ function analisarRegras(R){
   // Retorna data exata dd/mm/aaaa
   function projPontos(tcMinDias, nasc){
     if(!nasc) return null;
-    const dataRefDate=new Date(dataRef()+'T00:00:00');
     const nascDate=new Date(nasc+'T00:00:00');
-    // Iterar mês a mês: pontos = idade + TC (ambos crescem com o tempo)
-    for(let mes=0;mes<=600;mes++){
-      const projDate=new Date(dataRefDate.getTime()+mes*30*86400000);
-      const anoProj=projDate.getFullYear();
-      const tcProj=diasTC_total+mes*30; // dias de TC acumulados (sistema 30/360)
-      const tcAnosProj=tcProj/360;
-      const idadeProj=(projDate-nascDate)/(365.25*86400000);
+    const tcAnosAtual=Math.floor(diasTC_total/360);
+    const idadeAtualFloor=Math.floor(idadeAtual||0);
+    // Iterar ANO A ANO: pontos = anos completos de idade + anos completos de TC
+    // A cada ano: TC sobe 1 ano, idade sobe 1 ano → pontos sobem 2, meta sobe 1 → ganho líquido 1/ano
+    for(let anos=0;anos<=50;anos++){
+      const anoProj=anoRef()+anos;
+      const tcAnosProj=tcAnosAtual+anos; // TC em anos completos
+      const idadeProj=idadeAtualFloor+anos; // idade em anos completos
       const ptNecProj=pontosAno(sexo,anoProj);
-      const ptProj=Math.floor(idadeProj)+Math.floor(tcAnosProj);
-      if(tcAnosProj>=tcMinDias/360 && ptProj>=ptNecProj){
-        // Refinamento diário
-        for(let d=0;d<30;d++){
-          const dDate=new Date(dataRefDate.getTime()+((mes>0?mes-1:0)*30+d)*86400000);
-          const dAno=dDate.getFullYear();
-          const dTCAnos=(diasTC_total+(mes>0?(mes-1)*30:0)+d)/360;
-          const dIdade=(dDate-nascDate)/(365.25*86400000);
-          if(dTCAnos>=tcMinDias/360 && (Math.floor(dIdade)+Math.floor(dTCAnos))>=pontosAno(sexo,dAno)){
-            const dd=dDate.getDate(),mm=dDate.getMonth()+1,aa=dDate.getFullYear();
-            return String(dd).padStart(2,'0')+'/'+String(mm).padStart(2,'0')+'/'+aa;
-          }
-        }
-        const dd=projDate.getDate(),mm=projDate.getMonth()+1,aa=projDate.getFullYear();
-        return String(dd).padStart(2,'0')+'/'+String(mm).padStart(2,'0')+'/'+aa;
+      const ptProj=idadeProj+tcAnosProj;
+      if(tcAnosProj>=Math.floor(tcMinDias/360) && ptProj>=ptNecProj){
+        // Retornar a data do aniversário nesse ano (quando completa mais 1 ano de idade)
+        const nascMes=nascDate.getMonth()+1;
+        const nascDia=nascDate.getDate();
+        const anoFech=anoRef()+anos;
+        return String(nascDia).padStart(2,'0')+'/'+String(nascMes).padStart(2,'0')+'/'+anoFech;
       }
     }
     return null;
@@ -978,33 +970,20 @@ function analisarRegras(R){
   // itera mês a mês verificando idadeMinProgr(sexo, anoProj) vs idadeProj
   function projIdadeProgressiva(tcMinDias, nasc){
     if(!nasc) return null;
-    let tc=diasTC_total;
-    const dataRefDate=new Date(dataRef()+'T00:00:00');
     const nascDate=new Date(nasc+'T00:00:00');
-    for(let mes=0;mes<=360;mes++){
-      const projDate=new Date(dataRefDate);
-      projDate.setDate(projDate.getDate()+mes*30);
-      const anoProj=projDate.getFullYear();
-      const tcProj=tc+mes*30;
-      const tcAnosProj=tcProj/360;
-      const idadeProj=(projDate-nascDate)/(365.25*86400000);
+    const tcAnosAtual=Math.floor(diasTC_total/360);
+    const idadeAtualFloor=Math.floor(idadeAtual||0);
+    // Iterar ano a ano: TC sobe 1/ano, idade sobe 1/ano
+    for(let anos=0;anos<=50;anos++){
+      const anoProj=anoRef()+anos;
+      const tcAnosProj=tcAnosAtual+anos;
+      const idadeProj=idadeAtualFloor+anos;
       const idMinProj=idadeMinProgr(sexo,anoProj);
-      if(tcAnosProj>=tcMinDias/360 && idadeProj>=idMinProj){
-        for(let d=1;d<=30;d++){
-          const dDate=new Date(dataRefDate);
-          dDate.setDate(dDate.getDate()+(mes-1)*30+d);
-          const dAno=dDate.getFullYear();
-          const dTC=tc+(mes-1)*30+d;
-          const dTCAnos=dTC/360;
-          const dIdade=(dDate-nascDate)/(365.25*86400000);
-          const dIdMin=idadeMinProgr(sexo,dAno);
-          if(dTCAnos>=tcMinDias/360 && dIdade>=dIdMin){
-            const dd=dDate.getDate(),mm=dDate.getMonth()+1,aa=dDate.getFullYear();
-            return String(dd).padStart(2,'0')+'/'+String(mm).padStart(2,'0')+'/'+aa;
-          }
-        }
-        const dd=projDate.getDate(),mm=projDate.getMonth()+1,aa=projDate.getFullYear();
-        return String(dd).padStart(2,'0')+'/'+String(mm).padStart(2,'0')+'/'+aa;
+      if(tcAnosProj>=Math.floor(tcMinDias/360) && idadeProj>=idMinProj){
+        // Retornar data do aniversário nesse ano
+        const nascMes=nascDate.getMonth()+1;
+        const nascDia=nascDate.getDate();
+        return String(nascDia).padStart(2,'0')+'/'+String(nascMes).padStart(2,'0')+'/'+anoProj;
       }
     }
     return null;

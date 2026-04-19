@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -440,7 +439,7 @@ select.meta-in option{color:#000;background:#fff;}
         <div class="marco-item-sub">verificação de direito adquirido</div>
       </div>
       <div class="marco-item">
-        <div class="marco-item-lbl">Faltava em 13/11/2019</div>
+        <div class="marco-item-lbl">Faltava p/ Direito Adquirido</div>
         <div class="marco-item-val" id="m-faltava">—</div>
         <div class="marco-item-sub" id="m-faltava-sub">para ATC pré-reforma</div>
       </div>
@@ -945,39 +944,23 @@ function analisarRegras(R){
   // Retorna data exata dd/mm/aaaa
   function projPontos(tcMinDias, nasc){
     if(!nasc) return null;
-    let tc=diasTC_total;
-    // Avança dia a dia seria lento — avança mês a mês (30 dias)
-    const dataRefDate=new Date(dataRef()+'T00:00:00');
     const nascDate=new Date(nasc+'T00:00:00');
-    // Iterar mês a mês por até 30 anos
-    for(let mes=0;mes<=360;mes++){
-      const projDate=new Date(dataRefDate);
-      projDate.setDate(projDate.getDate()+mes*30);
-      const anoProj=projDate.getFullYear();
-      const tcProj=tc+mes*30; // dias de TC acumulados
-      const tcAnosProj=tcProj/360;
-      const idadeProj=(projDate-nascDate)/(365.25*86400000);
+    const tcAnosAtual=Math.floor(diasTC_total/360);
+    const idadeAtualFloor=Math.floor(idadeAtual||0);
+    // Iterar ANO A ANO: pontos = anos completos de idade + anos completos de TC
+    // A cada ano: TC sobe 1 ano, idade sobe 1 ano → pontos sobem 2, meta sobe 1 → ganho líquido 1/ano
+    for(let anos=0;anos<=50;anos++){
+      const anoProj=anoRef()+anos;
+      const tcAnosProj=tcAnosAtual+anos; // TC em anos completos
+      const idadeProj=idadeAtualFloor+anos; // idade em anos completos
       const ptNecProj=pontosAno(sexo,anoProj);
       const ptProj=idadeProj+tcAnosProj;
-      if(tcAnosProj>=tcMinDias/360 && ptProj>=ptNecProj){
-        // Refinamento: voltar 29 dias e avançar dia a dia
-        for(let d=1;d<=30;d++){
-          const dDate=new Date(dataRefDate);
-          dDate.setDate(dDate.getDate()+(mes-1)*30+d);
-          const dAno=dDate.getFullYear();
-          const dTC=tc+(mes-1)*30+d;
-          const dTCAnos=dTC/360;
-          const dIdade=(dDate-nascDate)/(365.25*86400000);
-          const dPtNec=pontosAno(sexo,dAno);
-          const dPt=dIdade+dTCAnos;
-          if(dTCAnos>=tcMinDias/360 && dPt>=dPtNec){
-            const dd=dDate.getDate(),mm=dDate.getMonth()+1,aa=dDate.getFullYear();
-            return String(dd).padStart(2,'0')+'/'+String(mm).padStart(2,'0')+'/'+aa;
-          }
-        }
-        // fallback
-        const dd=projDate.getDate(),mm=projDate.getMonth()+1,aa=projDate.getFullYear();
-        return String(dd).padStart(2,'0')+'/'+String(mm).padStart(2,'0')+'/'+aa;
+      if(tcAnosProj>=Math.floor(tcMinDias/360) && ptProj>=ptNecProj){
+        // Retornar a data do aniversário nesse ano (quando completa mais 1 ano de idade)
+        const nascMes=nascDate.getMonth()+1;
+        const nascDia=nascDate.getDate();
+        const anoFech=anoRef()+anos;
+        return String(nascDia).padStart(2,'0')+'/'+String(nascMes).padStart(2,'0')+'/'+anoFech;
       }
     }
     return null;
@@ -987,33 +970,20 @@ function analisarRegras(R){
   // itera mês a mês verificando idadeMinProgr(sexo, anoProj) vs idadeProj
   function projIdadeProgressiva(tcMinDias, nasc){
     if(!nasc) return null;
-    let tc=diasTC_total;
-    const dataRefDate=new Date(dataRef()+'T00:00:00');
     const nascDate=new Date(nasc+'T00:00:00');
-    for(let mes=0;mes<=360;mes++){
-      const projDate=new Date(dataRefDate);
-      projDate.setDate(projDate.getDate()+mes*30);
-      const anoProj=projDate.getFullYear();
-      const tcProj=tc+mes*30;
-      const tcAnosProj=tcProj/360;
-      const idadeProj=(projDate-nascDate)/(365.25*86400000);
+    const tcAnosAtual=Math.floor(diasTC_total/360);
+    const idadeAtualFloor=Math.floor(idadeAtual||0);
+    // Iterar ano a ano: TC sobe 1/ano, idade sobe 1/ano
+    for(let anos=0;anos<=50;anos++){
+      const anoProj=anoRef()+anos;
+      const tcAnosProj=tcAnosAtual+anos;
+      const idadeProj=idadeAtualFloor+anos;
       const idMinProj=idadeMinProgr(sexo,anoProj);
-      if(tcAnosProj>=tcMinDias/360 && idadeProj>=idMinProj){
-        for(let d=1;d<=30;d++){
-          const dDate=new Date(dataRefDate);
-          dDate.setDate(dDate.getDate()+(mes-1)*30+d);
-          const dAno=dDate.getFullYear();
-          const dTC=tc+(mes-1)*30+d;
-          const dTCAnos=dTC/360;
-          const dIdade=(dDate-nascDate)/(365.25*86400000);
-          const dIdMin=idadeMinProgr(sexo,dAno);
-          if(dTCAnos>=tcMinDias/360 && dIdade>=dIdMin){
-            const dd=dDate.getDate(),mm=dDate.getMonth()+1,aa=dDate.getFullYear();
-            return String(dd).padStart(2,'0')+'/'+String(mm).padStart(2,'0')+'/'+aa;
-          }
-        }
-        const dd=projDate.getDate(),mm=projDate.getMonth()+1,aa=projDate.getFullYear();
-        return String(dd).padStart(2,'0')+'/'+String(mm).padStart(2,'0')+'/'+aa;
+      if(tcAnosProj>=Math.floor(tcMinDias/360) && idadeProj>=idMinProj){
+        // Retornar data do aniversário nesse ano
+        const nascMes=nascDate.getMonth()+1;
+        const nascDia=nascDate.getDate();
+        return String(nascDia).padStart(2,'0')+'/'+String(nascMes).padStart(2,'0')+'/'+anoProj;
       }
     }
     return null;
@@ -1053,7 +1023,7 @@ function analisarRegras(R){
   // ─────────────────────────────────────────────────────────────
   // 1. DIREITO ADQUIRIDO (pré-reforma)
   // Só se aplica a quem tinha os 30 anos ATÉ 13/11/2019
-  // Se não tinha, a regra está extinta — não há projeção futura
+  // Se não tinha, a regra está extinta — não há projecao futura
   // ─────────────────────────────────────────────────────────────
   const tcMinDA=TC_MIN_DA[sexo];
   const possuiDA=(tcReformaAnos+1/360)>=tcMinDA;
@@ -1063,12 +1033,12 @@ function analisarRegras(R){
     desc:`Req: ${tcMinDA} anos de TC até 13/11/2019 · Sem idade mínima`,
     cor:'#1a5a3a',ok:possuiDA,
     tcVal:tcReformaAnos,tcReq:tcMinDA,idadeReq:null,
-    diasFalta:possuiDA?0:null, // sem projeção — regra extinta se não tinha DA
-    projeção:possuiDA?projetarIdade(nasc,0)||'já aposentável':null, // inelegível se não tinha
+    diasFalta:possuiDA?0:null, // sem projecao — regra extinta se não tinha DA
+    projecao:possuiDA?projetarIdade(nasc,0)||'já aposentável':null, // inelegível se não tinha
     expl:possuiDA
       ?`✓ Possuía ${fmtAMD(diasTC_reforma)} de TC em 13/11/2019`
       :`Possuía ${fmtAMD(diasTC_reforma)} em 13/11/2019 — faltava ${fmtAMD(Math.round((tcMinDA-tcReformaAnos)*360),true)} · Regra extinta`,
-    tipo:possuiDA?'ok':'inelegível_definitivo', // novo tipo: não projetável
+    tipo:possuiDA?'ok':'inelegivel_definitivo', // novo tipo: não projetável
   });
 
   // ─────────────────────────────────────────────────────────────
@@ -1077,7 +1047,8 @@ function analisarRegras(R){
   // ─────────────────────────────────────────────────────────────
   const tcMinP=TC_MIN_PONTOS[sexo];
   const ptNec=pontosAno(sexo,ano);
-  const ptAtual=idadeAtual!==null?idadeAtual+tcAnos:null;
+  // Pontos = anos completos de idade + anos completos de TC (sem decimais)
+  const ptAtual=idadeAtual!==null?Math.floor(idadeAtual)+Math.floor(tcAnos):null;
   const ptOk=ptAtual!==null&&ptAtual>=ptNec&&tcAnos>=tcMinP;
   const projPt=ptOk?null:projPontos(tcMinP*360,nasc);
   regras.push({
@@ -1086,10 +1057,10 @@ function analisarRegras(R){
     desc:`${ptNec} pontos em ${ano} (idade+TC) · TC mín: ${tcMinP}a`,
     cor:'#1a3a7a',ok:ptOk,
     tcVal:tcAnos,tcReq:tcMinP,idadeReq:null,
-    diasFalta:ptOk?0:Math.max(1,Math.round((tcMinP-tcAnos)*360)),
-    projeção:ptOk?null:projPt,
+    diasFalta:ptOk?0:null,
+    projecao:ptOk?null:projPt,
     expl:idadeAtual!==null
-      ?`${ptAtual!==null?ptAtual.toFixed(1):0} pontos (${idadeAtual.toFixed(1)}a idade + ${tcAnos.toFixed(1)}a TC) — necessário: ${ptNec}`
+      ?`${ptAtual!==null?ptAtual:0} pontos (${Math.floor(idadeAtual)}a idade + ${Math.floor(tcAnos)}a TC) — necessário: ${ptNec}`
       :'Informe data de nascimento',
     tipo:'pontos',
   });
@@ -1108,8 +1079,8 @@ function analisarRegras(R){
     desc:`${idMinP.toFixed(1).replace('.0','').replace('.5','½')} anos em ${ano} + TC mín: ${tcMinIP}a`,
     cor:'#1a3a7a',ok:idMinPOk,
     tcVal:tcAnos,tcReq:tcMinIP,idadeReq:idMinP,
-    diasFalta:idMinPOk?0:Math.max(1,Math.round((tcMinIP-tcAnos)*360)),
-    projeção:idMinPOk?null:projIP,
+    diasFalta:idMinPOk?0:null,
+    projecao:idMinPOk?null:projIP,
     expl:idadeAtual!==null
       ?`Idade: ${idadeAtual.toFixed(1)}a (req: ${idMinP.toFixed(1)}a) · TC: ${tcAnos.toFixed(1)}a (req: ${tcMinIP}a)`
       :'Informe data de nascimento',
@@ -1138,7 +1109,7 @@ function analisarRegras(R){
       cor:'#5a2a8a',ok:ped50Ok,
       tcVal:tcAnos,tcReq:diasTCPed50/360,idadeReq:null,
       diasFalta:ped50Ok?0:diasTCPed50-diasTC_total,
-      projeção:ped50Ok?null:projP50,
+      projecao:ped50Ok?null:projP50,
       expl:`Faltava ${fmtAMD(diasFaltavaDA,true)} em 13/11/2019 → pedágio +${fmtAMD(Math.round(diasFaltavaDA*0.5),true)} · TC req: ${fmtAMD(diasTCPed50,true)}`,
       tipo:'pedágio',
     });
@@ -1150,7 +1121,7 @@ function analisarRegras(R){
         :faltavaDA>=2?`Não elegível — faltava ${fmtAMD(Math.round(faltavaDA*360),true)} (exige menos de 2 anos)`
         :'Não elegível',
       cor:'#9c9890',ok:false,tcVal:tcReformaAnos,tcReq:tcMinDA,
-      diasFalta:null,projeção:null,expl:'',tipo:'inelegível',
+      diasFalta:null,projecao:null,expl:'',tipo:'inelegivel',
     });
   }
 
@@ -1173,7 +1144,7 @@ function analisarRegras(R){
       cor:'#5a2a8a',ok:ped100Ok,
       tcVal:tcAnos,tcReq:diasTCPed100/360,idadeReq:idMinPed100,
       diasFalta:ped100Ok?0:Math.max(diasTCPed100-diasTC_total,0),
-      projeção:ped100Ok?null:projP100,
+      projecao:ped100Ok?null:projP100,
       expl:`Possuía ${fmtAMD(diasTCReforma,true)} em 13/11/2019 — faltava ${fmtAMD(diasFaltavaDA,true)} → pedágio +${fmtAMD(diasFaltavaDA,true)} · idade mín: ${idMinPed100}a`,
       tipo:'pedágio',
     });
@@ -1183,7 +1154,7 @@ function analisarRegras(R){
       nome:'Pedágio de 100%',
       desc:'Já possuía DA — não se aplica',
       cor:'#9c9890',ok:false,tcVal:tcReformaAnos,tcReq:tcMinDA,
-      diasFalta:null,projeção:null,expl:'',tipo:'inelegível',
+      diasFalta:null,projecao:null,expl:'',tipo:'inelegivel',
     });
   }
 
@@ -1201,8 +1172,8 @@ function analisarRegras(R){
     desc:`${idPermReq} anos + 15 anos de TC`,
     cor:'#3a5a1a',ok:idPermOk,
     tcVal:tcIdadeAnos,tcReq:15,idadeReq:idPermReq,
-    diasFalta:idPermOk?0:Math.max(1,Math.round((15-tcIdadeAnos)*360)),
-    projeção:idPermOk?null:projIdPerm,
+    diasFalta:idPermOk?0:null,
+    projecao:idPermOk?null:projIdPerm,
     expl:idadeAtual!==null
       ?`Idade: ${idadeAtual.toFixed(1)}a (req: ${idPermReq}a) · TC (incl. reduzidas): ${tcIdadeAnos.toFixed(1)}a`
       :'Informe data de nascimento',
@@ -1222,8 +1193,8 @@ function analisarRegras(R){
         desc:`${idTransF}a em ${ano} + 15 anos de TC`,
         cor:'#3a5a1a',ok:trFOk,
         tcVal:tcIdadeAnos,tcReq:15,idadeReq:idTransF,
-        diasFalta:trFOk?0:Math.max(1,Math.round((15-tcIdadeAnos)*360)),
-        projeção:trFOk?null:projTrF,
+        diasFalta:trFOk?0:null,
+        projecao:trFOk?null:projTrF,
         expl:idadeAtual!==null
           ?`Idade: ${idadeAtual.toFixed(1)}a (req: ${idTransF}a) · TC (incl. reduzidas): ${tcIdadeAnos.toFixed(1)}a`
           :'Informe data de nascimento',
@@ -1246,14 +1217,23 @@ function analisarRegras(R){
     const dEspReforma=calcularEspAteReforma(grau);
     const possuiDAEsp=dEspReforma/360>=req.tc;
     // Pontos = idade + TC TOTAL (não só especial)
-    const ptAtualEsp=idadeAtual!==null?idadeAtual+tcAnos:null;
+    // Pontos especial: anos completos de idade + anos completos de TC total
+    const ptAtualEsp=idadeAtual!==null?Math.floor(idadeAtual)+Math.floor(tcAnos):null;
     const espTCOk=espAnos>=req.tc;
     const espPtsOk=ptAtualEsp!==null&&ptAtualEsp>=req.pts;
     const espOk=possuiDAEsp||(espTCOk&&espPtsOk);
     let projEsp=null;
-    if(!espOk&&!possuiDAEsp&&idadeAtual!==null&&espTCOk){
-      // Só projeta se JÁ tem o TC especial necessário — senão nunca vai fechar sem vínculo especial ativo
-      projEsp=projPontos(req.tc*360,nasc);
+    if(!espOk&&!possuiDAEsp&&idadeAtual!==null){
+      // Projeção: o limitante é o TC especial (25/20/15 anos)
+      // Projetar quando o TC especial atingirá o requisito
+      // (assume que continuará trabalhando em atividade especial)
+      const diasFaltaEsp=Math.max(0,req.tc*360-dEsp);
+      if(diasFaltaEsp>0){
+        projEsp=projetarTC(diasFaltaEsp);
+      } else {
+        // Tem TC especial suficiente, faltam só pontos
+        projEsp=projPontos(0,nasc);
+      }
     }
     const nomeRisco={25:'Baixo Risco',20:'Médio Risco',15:'Alto Risco'}[grau];
     regras.push({
@@ -1264,14 +1244,14 @@ function analisarRegras(R){
         :`${req.pts} pontos (idade+TC total) + ${req.tc}a especial — igual H e M`,
       cor:'#6a1a7a',ok:espOk,
       tcVal:espAnos,tcReq:req.tc,idadeReq:null,
-      diasFalta:espOk?0:(espTCOk?Math.max(1,1):null),
-      projeção:espOk?null:projEsp,
+      diasFalta:espOk?0:null,
+      projecao:espOk?null:projEsp,
       expl:possuiDAEsp
         ?`✓ Possuía ${(dEspReforma/360).toFixed(1)}a especial em 13/11/2019`
         :idadeAtual!==null
           ?`TC especial: ${fmtAMD(dEsp,true)} · Pontos: ${ptAtualEsp!==null?ptAtualEsp.toFixed(1):'-'} (req: ${req.pts})`
           :'Informe data de nascimento',
-      tipo:possuiDAEsp?'ok':espOk?'ok':espTCOk?'falta':'inelegível',
+      tipo:possuiDAEsp?'ok':espOk?'ok':'falta',
       possuiDAEsp,
     });
   });
@@ -1295,7 +1275,7 @@ function calcularEspAteReforma(grau){
 // MELHOR REGRA
 // ══════════════════════════════════════════════════════════════
 function melhorRegra(regras){
-  const comDir=regras.filter(r=>r.ok&&r.tipo!=='inelegível'&&r.tipo!=='inelegível_definitivo');
+  const comDir=regras.filter(r=>r.ok&&r.tipo!=='inelegivel'&&r.tipo!=='inelegivel_definitivo');
   if(comDir.length){
     const da=comDir.find(r=>r.id==='da');
     if(da) return{regra:da,tipo:'ok',msg:`Direito Adquirido - pode se aposentar sem idade mínima`};
@@ -1303,11 +1283,11 @@ function melhorRegra(regras){
     if(daEsp) return{regra:daEsp,tipo:'ok',msg:daEsp.nome+' - direito adquirido antes da reforma'};
     return{regra:comDir[0],tipo:'ok',msg:comDir[0].nome+' - requisitos atingidos'};
   }
-  const eleg=regras.filter(r=>r.tipo!=='inelegível'&&r.diasFalta!==null&&r.diasFalta>0);
+  const eleg=regras.filter(r=>r.tipo!=='inelegivel'&&r.diasFalta!==null&&r.diasFalta>0);
   if(!eleg.length)return null;
   eleg.sort((a,b)=>a.diasFalta-b.diasFalta);
   const m=eleg[0];
-  return{regra:m,tipo:'falta',msg:'Melhor opção: '+m.nome+(m.diasFalta?' - falta '+fmtAMD(m.diasFalta,true):m.projeção?' - Proj: '+m.projeção:'')};
+  return{regra:m,tipo:'falta',msg:'Melhor opção: '+m.nome+(m.diasFalta?' - falta '+fmtAMD(m.diasFalta,true):m.projecao?' - Proj: '+m.projecao:'')};
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1577,7 +1557,9 @@ function recalcular(){
   document.getElementById('s-reforma').textContent=fmtAMD(R.diasTC_reforma,true);
   document.getElementById('s-count').textContent=periodos.length;
   document.getElementById('s-idade').textContent=R.idadeAtual!==null?Math.floor(R.idadeAtual)+'a':'—';
-  document.getElementById('s-diag').textContent=melhor?melhor.msg:'—';
+  document.getElementById('s-diag').textContent=melhor
+    ?(melhor.tipo==='ok'?melhor.msg:melhor.msg+(melhor.regra.projecao?' · Proj: '+melhor.regra.projecao:''))
+    :'—';
 
   // Alertas
   document.getElementById('alertas-lista').innerHTML=R.alertas.map(a=>`<div class="alerta-item">${a}</div>`).join('');
@@ -1604,7 +1586,7 @@ function renderMarco(R){
     document.getElementById('m-faltava').textContent='✓ DA atingido';
     document.getElementById('m-faltava-sub').textContent=`Possuía ${tcMinDA}a de TC antes da reforma`;
   } else {
-    document.getElementById('m-faltava').textContent=fmtAMD(Math.round(faltava*360),true);
+    document.getElementById('m-faltava').textContent=fmtAMD(Math.round(faltava*365.25),true);
     document.getElementById('m-faltava-sub').textContent=`faltava para ATC (req: ${tcMinDA}a)`;
   }
 
@@ -1632,16 +1614,23 @@ function renderRegras(R,regras,melhor){
     }
     // Progresso real baseado no tipo de regra
     let pct;
-    if(r.ok){
-      pct=100;
+    if(r.tipo==='inelegivel'||r.tipo==='inelegivel_definitivo'){
+      pct=Math.min(100,(r.tcVal/r.tcReq)*100);
     } else if(r.id==='pontos'){
+      // Pontos: progresso = pontos atuais / pontos necessários
       const ptAtualRender=r.expl.match(/^([\d.]+) pontos/);
       const ptNecRender=parseInt(r.desc.match(/^(\d+) pontos/)?.[1]||'93');
-      pct=ptAtualRender?Math.min(99,(parseFloat(ptAtualRender[1])/ptNecRender)*100):Math.min(99,r.tcReq>0?(r.tcVal/r.tcReq)*100:0);
+      pct=ptAtualRender?Math.min(100,(parseFloat(ptAtualRender[1])/ptNecRender)*100):Math.min(100,(r.tcVal/r.tcReq)*100);
+    } else if(r.id==='idprogr'){
+      // Idade progressiva: progresso é o menor entre idade e TC
+      pct=Math.min(100,(r.tcVal/r.tcReq)*100);
+    } else if(r.tipo==='pedagio'){
+      // Pedágio: progresso de TC atual vs TC requerido
+      pct=Math.min(100,(r.tcVal/r.tcReq)*100);
     } else {
-      pct=r.tcReq>0?Math.min(99,(r.tcVal/r.tcReq)*100):0;
+      pct=Math.min(100,(r.tcVal/r.tcReq)*100);
     }
-    const isSemTipo=r.tipo==='inelegível';
+    const isSemTipo=r.tipo==='inelegivel';
     const isMelhor=melhor&&melhor.regra.id===r.id;
     html+=`<div class="regra-row" style="${isSemTipo?'opacity:.45':''}">
       <div>
@@ -1658,14 +1647,14 @@ function renderRegras(R,regras,melhor){
       </div>
       <div class="regra-nums">
         ${!isSemTipo?`<div class="regra-tempo" style="color:${r.cor}">${r.tcVal.toFixed(1)} anos</div>`:''}
-        <div class="regra-status ${r.ok?'ok':r.tipo==='inelegível_definitivo'?'falta':'falta'}">
+        <div class="regra-status ${r.ok?'ok':r.tipo==='inelegivel_definitivo'?'falta':'falta'}">
           ${r.ok?'✓ Requisito atingido'
-            :r.tipo==='inelegível_definitivo'?'Regra extinta'
+            :r.tipo==='inelegivel_definitivo'?'Regra extinta'
             :r.diasFalta?'Falta: '+fmtAMD(r.diasFalta,true)
-            :r.projeção?'—':'—'}
+            :r.projecao?'—':'—'}
         </div>
-        ${!r.ok&&r.tipo==='inelegível_definitivo'?'<div class="regra-proj" style="color:#8a1a1a;font-size:10px">Não atingiu os requisitos até 13/11/2019</div>'
-          :!r.ok&&r.projeção?`<div class="regra-proj">Proj: ${r.projeção}</div>`:''}
+        ${!r.ok&&r.tipo==='inelegivel_definitivo'?'<div class="regra-proj" style="color:#8a1a1a;font-size:10px">Não atingiu os requisitos até 13/11/2019</div>'
+          :!r.ok&&r.projecao?`<div class="regra-proj">Proj: ${r.projecao}</div>`:''}
       </div>
     </div>`;
   });
@@ -1890,10 +1879,12 @@ function exportarPDFCliente(){
       doc.text('Modalidade: '+traduzirRegra(melhor.regra.id)+'   |   Procure sua advogada para dar entrada.',mL+7,y+15);
     } else {
       const diasFalta=melhor.regra.diasFalta||0;
-      const projData=melhor.regra.projeção||null;
+      // Usar projecao do objeto (considera requisito de idade quando aplicável)
+      const projData=melhor.regra.projecao||projetarTC(diasFalta);
       doc.text('Melhor caminho: '+traduzirRegra(melhor.regra.id),mL+7,y+8);
       doc.setFont('helvetica','normal');doc.setFontSize(9);
-      doc.text('Tempo restante: '+fmtAMD(diasFalta)+(projData?'   |   Previsao: '+projData:''),mL+7,y+16);
+      const tempoTxt=diasFalta>0?'Tempo de TC restante: '+fmtAMD(diasFalta):'TC já suficiente';
+      doc.text(tempoTxt+(projData?'   |   Previsao: '+projData:''),mL+7,y+16);
     }
     y+=boxH+5;
   }
@@ -1919,7 +1910,7 @@ function exportarPDFCliente(){
   doc.text('Se houver períodos sem contribuição, a data real de aposentadoria será mais tarde.', mL+6, y+11);
   y+=18;
 
-  const regrasVisiveis=regras.filter(r=>r.tipo!=='inelegível');
+  const regrasVisiveis=regras.filter(r=>r.tipo!=='inelegivel');
   const colW=(CW-4)/2;
   let col=0, yRow=y;
 
@@ -1945,8 +1936,8 @@ function exportarPDFCliente(){
     } else if(r.tipo==='inelegivel_definitivo'){
       doc.setTextColor(...CZ2);
       doc.text('Regra extinta — sem direito adquirido em 13/11/2019',xPos+6,yRow+13);
-    } else if(r.diasFalta||r.projeção){
-      const proj=r.projeção||'';
+    } else if(r.diasFalta||r.projecao){
+      const proj=r.projecao||'';
       const faltaTxt=r.diasFalta?'Falta: '+fmtAMD(r.diasFalta,true):'';
       const projTxt=proj?'Proj: '+proj:'';
       doc.text((faltaTxt+(faltaTxt&&projTxt?' | ':'')+projTxt)||'—',xPos+6,yRow+13);
@@ -2066,7 +2057,7 @@ function exportarPDFTecnico(){
   const faltava=Math.max(0,tcMinDA-R.tcReformaAnos);
   const cols=[
     {l:'TC até 13/11/2019',v:fmtAMD(R.diasTC_reforma,true)},
-    {l:'Faltava p/ Direito Adquirido',v:faltava<=0?'✓ DA atingido':fmtAMD(Math.round(faltava*360),true)},
+    {l:'Faltava p/ Direito Adquirido',v:faltava<=0?'✓ DA atingido':fmtAMD(Math.round(faltava*365.25),true)},
     {l:'TC total (transição)',v:fmtAMD(R.diasTC_total,true)},
     {l:'TC (apos. por idade)',v:fmtAMD(R.diasIdade_total,true)},
   ];
@@ -2091,15 +2082,15 @@ function exportarPDFTecnico(){
   }
 
   // Tabela regras
-  const rRows=regras.filter(r=>r.tipo!=='inelegível'&&r.tipo!=='inelegivel').map(r=>[
+  const rRows=regras.filter(r=>r.tipo!=='inelegivel'&&r.tipo!=='inelegivel').map(r=>[
     r.nome,r.desc,r.tcVal.toFixed(1)+'a',
     r.ok?'✓ SIM'
       :r.tipo==='inelegivel_definitivo'?'Regra extinta'
       :r.diasFalta?'Falta: '+fmtAMD(r.diasFalta,true)
-      :r.projeção?'—':'—',
+      :r.projecao?'—':'—',
     r.ok?'—'
       :r.tipo==='inelegivel_definitivo'?'—'
-      :r.projeção?r.projeção:'—',
+      :r.projecao?r.projecao:'—',
   ]);
   doc.autoTable({
     startY:y,

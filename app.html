@@ -954,7 +954,7 @@ function analisarRegras(R){
       const tcAnosProj=tcProj/360;
       const idadeProj=(projDate-nascDate)/(365.25*86400000);
       const ptNecProj=pontosAno(sexo,anoProj);
-      const ptProj=idadeProj+tcAnosProj;
+      const ptProj=Math.floor(idadeProj)+Math.floor(tcAnosProj);
       if(tcAnosProj>=tcMinDias/360 && ptProj>=ptNecProj){
         // Refinamento diário
         for(let d=0;d<30;d++){
@@ -962,7 +962,7 @@ function analisarRegras(R){
           const dAno=dDate.getFullYear();
           const dTCAnos=(diasTC_total+(mes>0?(mes-1)*30:0)+d)/360;
           const dIdade=(dDate-nascDate)/(365.25*86400000);
-          if(dTCAnos>=tcMinDias/360 && (dIdade+dTCAnos)>=pontosAno(sexo,dAno)){
+          if(dTCAnos>=tcMinDias/360 && (Math.floor(dIdade)+Math.floor(dTCAnos))>=pontosAno(sexo,dAno)){
             const dd=dDate.getDate(),mm=dDate.getMonth()+1,aa=dDate.getFullYear();
             return String(dd).padStart(2,'0')+'/'+String(mm).padStart(2,'0')+'/'+aa;
           }
@@ -1068,7 +1068,8 @@ function analisarRegras(R){
   // ─────────────────────────────────────────────────────────────
   const tcMinP=TC_MIN_PONTOS[sexo];
   const ptNec=pontosAno(sexo,ano);
-  const ptAtual=idadeAtual!==null?idadeAtual+tcAnos:null;
+  // Pontos = anos completos de idade + anos completos de TC (sem decimais)
+  const ptAtual=idadeAtual!==null?Math.floor(idadeAtual)+Math.floor(tcAnos):null;
   const ptOk=ptAtual!==null&&ptAtual>=ptNec&&tcAnos>=tcMinP;
   const projPt=ptOk?null:projPontos(tcMinP*360,nasc);
   regras.push({
@@ -1080,7 +1081,7 @@ function analisarRegras(R){
     diasFalta:ptOk?0:null,
     projecao:ptOk?null:projPt,
     expl:idadeAtual!==null
-      ?`${ptAtual!==null?ptAtual.toFixed(1):0} pontos (${idadeAtual.toFixed(1)}a idade + ${tcAnos.toFixed(1)}a TC) — necessário: ${ptNec}`
+      ?`${ptAtual!==null?ptAtual:0} pontos (${Math.floor(idadeAtual)}a idade + ${Math.floor(tcAnos)}a TC) — necessário: ${ptNec}`
       :'Informe data de nascimento',
     tipo:'pontos',
   });
@@ -1237,7 +1238,8 @@ function analisarRegras(R){
     const dEspReforma=calcularEspAteReforma(grau);
     const possuiDAEsp=dEspReforma/360>=req.tc;
     // Pontos = idade + TC TOTAL (não só especial)
-    const ptAtualEsp=idadeAtual!==null?idadeAtual+tcAnos:null;
+    // Pontos especial: anos completos de idade + anos completos de TC total
+    const ptAtualEsp=idadeAtual!==null?Math.floor(idadeAtual)+Math.floor(tcAnos):null;
     const espTCOk=espAnos>=req.tc;
     const espPtsOk=ptAtualEsp!==null&&ptAtualEsp>=req.pts;
     const espOk=possuiDAEsp||(espTCOk&&espPtsOk);

@@ -1557,7 +1557,9 @@ function recalcular(){
   document.getElementById('s-reforma').textContent=fmtAMD(R.diasTC_reforma,true);
   document.getElementById('s-count').textContent=periodos.length;
   document.getElementById('s-idade').textContent=R.idadeAtual!==null?Math.floor(R.idadeAtual)+'a':'—';
-  document.getElementById('s-diag').textContent=melhor?melhor.msg:'—';
+  document.getElementById('s-diag').textContent=melhor
+    ?(melhor.tipo==='ok'?melhor.msg:melhor.msg+(melhor.regra.projecao?' · Proj: '+melhor.regra.projecao:''))
+    :'—';
 
   // Alertas
   document.getElementById('alertas-lista').innerHTML=R.alertas.map(a=>`<div class="alerta-item">${a}</div>`).join('');
@@ -1877,10 +1879,12 @@ function exportarPDFCliente(){
       doc.text('Modalidade: '+traduzirRegra(melhor.regra.id)+'   |   Procure sua advogada para dar entrada.',mL+7,y+15);
     } else {
       const diasFalta=melhor.regra.diasFalta||0;
-      const projData=projetarTC(diasFalta);
+      // Usar projecao do objeto (considera requisito de idade quando aplicável)
+      const projData=melhor.regra.projecao||projetarTC(diasFalta);
       doc.text('Melhor caminho: '+traduzirRegra(melhor.regra.id),mL+7,y+8);
       doc.setFont('helvetica','normal');doc.setFontSize(9);
-      doc.text('Tempo restante: '+fmtAMD(diasFalta)+(projData?'   |   Previsao: '+projData:''),mL+7,y+16);
+      const tempoTxt=diasFalta>0?'Tempo de TC restante: '+fmtAMD(diasFalta):'TC já suficiente';
+      doc.text(tempoTxt+(projData?'   |   Previsao: '+projData:''),mL+7,y+16);
     }
     y+=boxH+5;
   }
